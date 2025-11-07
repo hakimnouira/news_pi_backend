@@ -1,214 +1,172 @@
-# news_pi_backend# 🚀 News PI Backend (FastAPI)
+#  News PI Backend (FastAPI)
 
-A modern backend built with **FastAPI**, implementing:
+A modern structured backend with:
 
-- Authentication (JWT)
-- Users & Roles (RBAC)
+- JWT authentication
+- Role-based access control (RBAC)
 - Posts (CRUD)
 - Comments (CRUD)
-- Role-based permissions (Admin / User)
-
-Perfect foundation to attach a frontend (React / Angular / Next.js / Vue).
+- Swagger authentication using OAuth2 (form-based)
+- JSON authentication for real frontend applications
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Component | Technology |
-|----------|------------|
-| API Framework | **FastAPI** |
-| ORM / Database layer | **SQLAlchemy** |
-| Auth | JWT (`python-jose`), hashing (`passlib[bcrypt_sha256]`) |
-| DB | SQLite (dev), PostgreSQL (prod-ready) |
-| Config | Pydantic / `.env` |
-| Migration-ready | Alembic compatible |
+| Layer | Technology |
+|------|------------|
+| Backend Framework | FastAPI |
+| Auth | JWT (`python-jose`) + password hashing (`passlib[bcrypt_sha256]`) |
+| Database ORM | SQLAlchemy |
+| DB (dev) | SQLite |
+| DB (prod-ready) | PostgreSQL |
+| Configuration | Pydantic Settings (`.env`) |
 
 ---
 
 ## 📂 Project Structure
 
-```
 news_pi_backend/
 ├─ app/
-│  ├─ api/
-│  │  ├─ deps.py
-│  │  ├─ routes/
-│  │  │  ├─ auth.py       ← login, register, JWT
-│  │  │  ├─ users.py      ← get current user, list users
-│  │  │  ├─ posts.py      ← users create/edit/delete posts
-│  │  │  ├─ comments.py   ← users comment on posts
-│  │  │  └─ roles.py      ← admin manage roles
-│  ├─ core/               ← config + security (jwt, hashing)
-│  ├─ db/                 ← database + seeding (admin + roles)
-│  ├─ models/             ← SQLAlchemy models
-│  ├─ schemas/            ← Pydantic request/response models
-│  └─ main.py             ← app entrypoint
-├─ .env.example
-├─ .gitignore
+│ ├─ api/
+│ │ ├─ deps.py ← JWT token decoding / current user dependency
+│ │ ├─ routes/
+│ │ │ ├─ auth.py ← register, login, OAuth2 token
+│ │ │ ├─ users.py ← get profile, list users
+│ │ │ ├─ posts.py ← post CRUD
+│ │ │ ├─ comments.py ← comment CRUD
+│ │ │ └─ roles.py ← role CRUD (admin only)
+│ ├─ core/ ← config + security (hashing, JWT)
+│ ├─ db/ ← database + seeding
+│ ├─ models/ ← ORM models
+│ ├─ schemas/ ← request/response validation
+│ └─ main.py ← FastAPI app entrypoint
+├─ .env
 ├─ requirements.txt
 ├─ README.md
-```
+
+pgsql
+Copy code
 
 ---
 
-## ⚙️ Setup (Windows / PowerShell)
+## ⚙️ Installation (Windows PowerShell)
 
 ```powershell
-# 1. Clone project
 git clone https://github.com/<your-user>/news_pi_backend.git
 cd news_pi_backend
 
-# 2. Create and activate venv
 python -m venv venv
-.env\Scriptsctivate
+.\venv\Scripts\activate
 
-# 3. Install dependencies
 pip install -r requirements.txt
 
-# Fix Windows bcrypt issue
+# Fix Windows bcrypt conflict
 pip uninstall -y bcrypt passlib
 pip install "passlib[bcrypt]==1.7.4" "bcrypt==4.0.1"
 
-# 4. Run server
 uvicorn app.main:app --reload
-```
+✅ Server runs at → http://127.0.0.1:8000
+✅ Swagger Docs → http://127.0.0.1:8000/docs
 
-✅ Backend is running at:  
-👉 http://127.0.0.1:8000  
-Swagger Docs: http://127.0.0.1:8000/docs
+🔐 Authentication Flow
+Endpoint	Input	Used by	Purpose
+POST /api/v1/auth/login	JSON { email, password }	✅ Frontend / Postman	Login normally and get JWT
+POST /api/v1/auth/token	Form (username, password)	✅ Swagger UI only	Allows Swagger OAuth2 popup to log you in
 
----
+/token exists ONLY so Swagger UI can authenticate using the OAuth2 popup.
+Your frontend always uses /login (JSON).
 
-## 🔐 Environment Variables
+Swagger authentication (OAuth2 automatic JWT)
+➡️ Open Swagger: http://127.0.0.1:8000/docs
+➡️ Click Authorize
+➡️ Enter:
 
-Copy `.env.example → .env`
+Field in Swagger	What to put
+username	your user email (ex: admin@example.com)
+password	your password (ex: admin)
+client_id / client_secret	leave empty
 
-```
-API_V1_STR=/api/v1
-SECRET_KEY=YOUR_SECRET
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
-DATABASE_URL=sqlite:///./app.db
+Swagger will call:
 
-FIRST_SUPERUSER_EMAIL=admin@example.com
-FIRST_SUPERUSER_PASSWORD=admin
-```
+bash
+Copy code
+POST /api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+and store the JWT automatically.
 
-> On first launch, backend creates admin & default roles (`admin`, `user`).
+You can now call protected endpoints without manually pasting a token.
 
----
+JSON login (to be used by frontend)
+Use this:
 
-## 👤 Roles & Permissions
+bash
+Copy code
+POST /api/v1/auth/login
+Body:
 
-| Feature | User | Admin |
-|---------|------|--------|
-| Register / Login | ✅ | ✅ |
-| Create Posts | ✅ | ✅ |
-| Edit / Delete **own** posts | ✅ | ✅ |
-| Create Comments | ✅ | ✅ |
-| Edit / Delete **own** comments | ✅ | ✅ |
-| Assign roles to users | ❌ | ✅ |
-| Create/delete roles | ❌ | ✅ |
-| View list of users | ✅ | ✅ |
-| View all posts/comments | ✅ | ✅ |
+json
+Copy code
+{
+  "email": "user@example.com",
+  "password": "mypassword"
+}
+Response contains the JWT:
 
----
+json
+Copy code
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR...",
+  "token_type": "bearer"
+}
+👤 Roles & Permissions
+Feature	User	Admin
+Register / Login	✅	✅
+Create Post	✅	✅
+Edit/Delete own post	✅	✅
+Comment on posts	✅	✅
+Edit/Delete own comment	✅	✅
+Create roles	❌	✅
+Assign/remove roles	❌	✅
 
-## 🧪 Testing Endpoints via Swagger
+Admin credentials are created automatically at startup from .env.
 
-➡️ Open: http://127.0.0.1:8000/docs
-
-### ✅ Register user (`POST /api/v1/auth/register`)
-
-```json
+🧪 API Testing
+✅ Create a user
+bash
+Copy code
+POST /api/v1/auth/register
+json
+Copy code
 {
   "email": "user@example.com",
   "password": "mypassword",
   "is_active": true
 }
-```
+✅ Get current logged user
+bash
+Copy code
+GET /api/v1/users/me
+Requires Authorization header:
 
-### ✅ Login (`POST /api/v1/auth/login`)
+makefile
+Copy code
+Authorization: Bearer <token>
+✅ Create a post
+bash
+Copy code
+POST /api/v1/posts/
+Body:
 
-```json
-{
-  "email": "user@example.com",
-  "password": "mypassword"
-}
-```
-
-Copy the token → Click **Authorize** → paste:
-
-```
-Bearer eyJ...
-```
-
-### ✅ Get current user (`GET /api/v1/users/me`)
-
-Response example:
-
-```json
-{
-  "id": 2,
-  "email": "user@example.com",
-  "is_active": true,
-  "roles": [
-    { "id": 2, "name": "user" }
-  ]
-}
-```
-
----
-
-## 📰 Posts API
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/v1/posts/` | ❌ | List posts |
-| `POST` | `/api/v1/posts/` | ✅ | Create post |
-| `PUT` | `/api/v1/posts/{post_id}` | ✅ (owner only) | Update own post |
-| `DELETE` | `/api/v1/posts/{post_id}` | ✅ (owner only) | Delete own post |
-
-Example body:
-
-```json
+json
+Copy code
 {
   "title": "Breaking News",
-  "content": "FastAPI backend complete!"
+  "content": "FastAPI backend works!"
 }
-```
+✅ Optional Enhancements (next steps)
+Refresh tokens
 
----
+Email confirmation workflow
 
-## 💬 Comments API
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/v1/comments/` | ❌ | List comments |
-| `GET` | `/api/v1/comments/post/{post_id}` | ❌ | List comments on post |
-| `POST` | `/api/v1/comments/post/{post_id}` | ✅ | Add comment |
-| `PUT` | `/api/v1/comments/{comment_id}` | ✅ (owner) | Edit own comment |
-| `DELETE` | `/api/v1/comments/{comment_id}` | ✅ (owner) | Delete own comment |
-
----
-
-## 🛡️ Roles API (Admin only)
-
-| Method | Endpoint |
-|--------|----------|
-| `POST /api/v1/roles/` | Create role |
-| `DELETE /api/v1/roles/{role_id}` | Delete role |
-| `POST /api/v1/roles/assign/{user_id}/{role_name}` | Assign role to user |
-
----
-
-## ✅ TODO
-
-- Pagination for posts & comments
-- Email verification flow
-- Refresh tokens
-- Pytest test suite
-
----
-
-MIT License.
+Pagination & filtering

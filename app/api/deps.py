@@ -12,7 +12,8 @@ from app.schemas.auth import TokenPayload
 
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/token")
+
 
 
 def get_db_dep() -> Generator:
