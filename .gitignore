@@ -1,0 +1,46 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+
+# Environment variables
+.env
+.env.*
+!.env.example  # keep example but ignore real .env files
+
+# Build / distribution
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+
+# Byte-compiled / optimized files
+.pytest_cache/
+coverage/
+htmlcov/
+
+# Database files (if SQLite is used locally)
+*.db
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Local test / temp files
+tmp/
