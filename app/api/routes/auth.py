@@ -2,44 +2,48 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
+from sqlalchemy.exc import IntegrityError
 from app.api.deps import get_db_dep, authenticate
 from app.core.security import create_access_token, get_password_hash
 from app.models.user import User
 from app.models.role import Role
 from app.schemas.auth import Login, Token
-from app.schemas.user import UserCreate, UserOut
+from app.schemas.user import UserRegister, UserOut
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserOut)
-def register(user_in: UserCreate, db: Session = Depends(get_db_dep)):
-    email_exists = db.query(User).filter(User.email == user_in.email).first()
-    if email_exists:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-    username_exists = db.query(User).filter(User.username == user_in.username).first()
-    if username_exists:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+def register(user_in: UserRegister, db: Session = Depends(get_db_dep)):
+    # Friendly checks first
+    if db.query(User).filter(User.email == user_in.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    if db.query(User).filter(User.username == user_in.username).first():
+        raise HTTPException(status_code=400, detail="Username already taken")
 
     user = User(
         email=user_in.email,
         username=user_in.username,
         first_name=user_in.first_name,
         last_name=user_in.last_name,
-        bio=user_in.bio,
-        avatar_url=str(user_in.avatar_url) if user_in.avatar_url else None,
+        # Set profile fields later via /users/me
+        bio=None,
+        avatar_url=None,
+        is_active=True,
         hashed_password=get_password_hash(user_in.password),
-        is_active=user_in.is_active,
     )
 
-    # assign default "user" role if exists
+    # default role
     role = db.query(Role).filter_by(name="user").first()
     if role:
         user.roles.append(role)
 
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        # Handle rare race condition (unique constraints)
+        raise HTTPException(status_code=400, detail="Email or username already registered")
     db.refresh(user)
     return user
 
