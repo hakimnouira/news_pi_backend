@@ -1,4 +1,4 @@
-# news_pi_backend# 🚀 News PI Backend (FastAPI)
+## News PI Backend (FastAPI)
 
 A modern backend built with **FastAPI**, implementing:
 
