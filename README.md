@@ -207,8 +207,3 @@ Example body:
 - Pagination for posts & comments
 - Email verification flow
 - Refresh tokens
-- Pytest test suite
-
----
-
-MIT License.
