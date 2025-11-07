@@ -8,11 +8,11 @@ class Settings(BaseSettings):
 
     # Security
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 day
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  
     ALGORITHM: str = "HS256"
 
     # DB
-    DATABASE_URL: str = "sqlite:///./app.db"  # override via .env
+    DATABASE_URL: str = "sqlite:///./app.db"  
 
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
