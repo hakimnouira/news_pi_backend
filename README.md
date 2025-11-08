@@ -56,7 +56,7 @@ git clone https://github.com/<your-user>/news_pi_backend.git
 cd news_pi_backend
 
 python -m venv venv
-.env\Scriptsctivate
+venv\Scripts\activate
 
 pip install -r requirements.txt
 
