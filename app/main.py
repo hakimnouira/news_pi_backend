@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import api_router
 from app.core.config import settings
 from app.db.database import init_db
+import warnings
+warnings.filterwarnings("ignore", message=".*error reading bcrypt version.*")
 
 app = FastAPI(
     title="News PI Backend",
