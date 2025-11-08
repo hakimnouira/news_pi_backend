@@ -36,15 +36,17 @@ def init_base_data():
             # derive username from email local part and make it unique
             email_local = (settings.FIRST_SUPERUSER_EMAIL or "admin").split("@")[0]
             username = _unique_username(db, email_local)
-
+            print("DEBUG → FIRST_SUPERUSER_PASSWORD:", repr(settings.FIRST_SUPERUSER_PASSWORD))
+            print("DEBUG → Length:", len(get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)))
             admin = User(
                 email=settings.FIRST_SUPERUSER_EMAIL,
                 username=username,                      # <<< IMPORTANT
                 first_name="Admin",
                 last_name="User",
-                hashed_password=get_password_hash(settings.FIRST_SUPERUSER_PASSWORD),
+                hashed_password=get_password_hash(settings.FIRST_SUPERUSER_PASSWORD),  
                 is_active=True,
             )
+            
             if admin_role:
                 admin.roles.append(admin_role)
 
