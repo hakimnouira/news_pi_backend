@@ -36,7 +36,6 @@ def init_base_data():
             # derive username from email local part and make it unique
             email_local = (settings.FIRST_SUPERUSER_EMAIL or "admin").split("@")[0]
             username = _unique_username(db, email_local)
-
             admin = User(
                 email=settings.FIRST_SUPERUSER_EMAIL,
                 username=username,                      # <<< IMPORTANT
