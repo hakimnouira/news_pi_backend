@@ -12,6 +12,7 @@ from app.schemas.user import UserRegister, UserOut
 
 router = APIRouter()
 
+
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserRegister, db: Session = Depends(get_db_dep)):
     # Friendly checks first
@@ -27,7 +28,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db_dep)):
         last_name=user_in.last_name,
         # Set profile fields later via /users/me
         bio=None,
-        avatar_url=None,
+        avatar_path=None,   # <-- changed from avatar_url to avatar_path (or remove this line entirely)
         is_active=True,
         hashed_password=get_password_hash(user_in.password),
     )
@@ -42,10 +43,10 @@ def register(user_in: UserRegister, db: Session = Depends(get_db_dep)):
         db.commit()
     except IntegrityError:
         db.rollback()
-        # Handle rare race condition (unique constraints)
         raise HTTPException(status_code=400, detail="Email or username already registered")
     db.refresh(user)
     return user
+
 
 # JSON login (good for frontend / Postman)
 @router.post("/login", response_model=Token)

@@ -6,8 +6,9 @@ from app.models.user import User
 from app.models.role import Role
 from app.core.security import get_password_hash
 
+
 def _unique_username(db: Session, base: str) -> str:
-    # sanitize a bit
+    """Create a unique username based on a base string."""
     base = (base or "admin").strip() or "admin"
     candidate = base
     i = 1
@@ -16,11 +17,22 @@ def _unique_username(db: Session, base: str) -> str:
         candidate = f"{base}{i}"
     return candidate
 
+
 def init_base_data():
     db: Session = SessionLocal()
     try:
-        # Ensure roles exist
-        for r in ("admin", "user"):
+        # === Seed default roles (idempotent) ===
+        role_names = [
+            "admin",
+            "user",
+            "verified",
+            "journalist",
+            "editor",
+            "economist",
+            "military_commander",
+            "diplomat",
+        ]
+        for r in role_names:
             role = db.query(Role).filter_by(name=r).first()
             if not role:
                 role = Role(name=r)
@@ -28,19 +40,20 @@ def init_base_data():
                 db.commit()
                 db.refresh(role)
 
-        # Ensure first superuser (now with username)
+        # === Ensure first superuser exists (idempotent) ===
         admin = db.query(User).filter_by(email=settings.FIRST_SUPERUSER_EMAIL).first()
         if not admin:
             admin_role = db.query(Role).filter_by(name="admin").first()
 
-            # derive username from email local part and make it unique
+            # Derive a unique username from the email local-part
             email_local = (settings.FIRST_SUPERUSER_EMAIL or "admin").split("@")[0]
             username = _unique_username(db, email_local)
+
             admin = User(
                 email=settings.FIRST_SUPERUSER_EMAIL,
-                username=username,                      # <<< IMPORTANT
-                first_name="Admin",
-                last_name="User",
+                username=username,
+                first_name="System",
+                last_name="Admin",
                 hashed_password=get_password_hash(settings.FIRST_SUPERUSER_PASSWORD),
                 is_active=True,
             )
@@ -49,5 +62,6 @@ def init_base_data():
 
             db.add(admin)
             db.commit()
+            db.refresh(admin)
     finally:
         db.close()

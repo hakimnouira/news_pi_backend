@@ -50,3 +50,32 @@ def assign_role(
         db.add(user)
         db.commit()
     return
+@router.delete("/assign/{user_id}/{role_name}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_role(
+    user_id: int,
+    role_name: str,
+    db: Session = Depends(get_db_dep),
+    _: User = Depends(require_admin),
+):
+    user = db.query(User).get(user_id)
+    role = db.query(Role).filter_by(name=role_name).first()
+
+    if not user or not role:
+        raise HTTPException(status_code=404, detail="User or role not found")
+
+    # optional safety: prevent removing 'admin' from the last admin
+    if role.name == "admin":
+        admins = (
+            db.query(User)
+            .join(User.roles)
+            .filter(Role.name == "admin", User.is_active == True)
+            .all()
+        )
+        if len(admins) <= 1 and user in admins:
+            raise HTTPException(status_code=400, detail="Cannot remove the last admin role")
+
+    if role in user.roles:
+        user.roles.remove(role)
+        db.add(user)
+        db.commit()
+    return

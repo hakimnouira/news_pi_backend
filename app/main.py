@@ -4,12 +4,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import api_router
 from app.core.config import settings
 from app.db.database import init_db
+from fastapi.staticfiles import StaticFiles
+
+
 
 app = FastAPI(
     title="News PI Backend",
     version="0.1.0",
     openapi_url="/openapi.json",
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # CORS (adjust for your frontends)
 app.add_middleware(
