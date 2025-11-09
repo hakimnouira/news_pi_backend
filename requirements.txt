@@ -12,34 +12,3 @@ bcrypt
 email-validator
 python-multipart
 pandas
-
-
-# hakim 
-langchain>=0.1.0
-langchain-community>=0.0.19
-langchain-openai
-chromadb>=0.4.22
-sentence-transformers
-numpy
-pandas
-scikit-learn
-langchain-mistralai
-langchain-groq
-openrouter
-groq
-google-search-results
-torch>=2.0.0
-transformers>=4.30.0
-trl
-accelerate
-datasets
-python-dotenv
-pytesseract
-Pillow
-opencv-python
-python-multipart
-shap>=0.45.0
-lime>=0.2.0.1
-matplotlib>=3.7.0
-seaborn>=0.12.0
-# hakim end
